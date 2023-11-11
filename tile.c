@@ -4,7 +4,7 @@
  */
 
 /* include the image we are using */
-#include "background.h"
+#include "clouds.h"
 
 /* include the tile map we are using */
 #include "map2.h"
