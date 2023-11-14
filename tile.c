@@ -4,10 +4,10 @@
  */
 
 /* include the image we are using */
-#include "clouds.h"
+#include "start.h"
 
 /* include the tile map we are using */
-#include "map2.h"
+#include "startfront.h"
 
 /* the width and height of the screen */
 #define WIDTH 240
@@ -112,13 +112,13 @@ void setup_background() {
 
     /* load the palette from the image into palette memory*/
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        bg_palette[i] = background_palette[i];
+        bg_palette[i] = start_palette[i];
     }
 
     /* load the image into char block 0 (16 bits at a time) */
     volatile unsigned short* dest = char_block(0);
-    unsigned short* image = (unsigned short*) background_data;
-    for (int i = 0; i < ((background_width * background_height) / 2); i++) {
+    unsigned short* image = (unsigned short*) start_data;
+    for (int i = 0; i < ((start_width * start_height) / 2); i++) {
         dest[i] = image[i];
     }
 
@@ -138,12 +138,18 @@ void setup_background() {
     }
 }
 
-
 /* just kill time */
 void delay(unsigned int amount) {
     for (int i = 0; i < amount * 10; i++);
 }
-
+//press a in title screen to get to game
+ int a_button_pressed() {
+     if (~(*buttons) & BUTTON_A) {
+         while (~(*buttons) & BUTTON_A);
+         return 1;
+     }
+     return 0;
+ }
 /* the main function */
 int main() {
     /* we set the mode to mode 0 with bg0 on */
@@ -151,7 +157,9 @@ int main() {
 
     /* setup the background 0 */
     setup_background();
-
+ while (!a_button_pressed()) {
+         //do nothing till a pressed
+ }
     /* set initial scroll to 0 */
     int xscroll = 0;
     int yscroll = 0;
