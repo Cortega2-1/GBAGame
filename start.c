@@ -2,7 +2,8 @@
  * tiles.c
  * program which demonstraes tile mode 0
  */
-
+//#include "clouds.h"
+#include "hillsandclouds.h"
 /* include the image we are using */
 #include "start.h"
 
@@ -133,7 +134,7 @@ void setup_background() {
 
     /* load the tile data into screen block 16 */
     dest = screen_block(16);
-    for (int i = 0; i < (map_width * map_height); i++) {
+    for (int i = 0; i < (hillsandclouds_width * hillsandclouds_height); i++) {
         dest[i] = map[i];
     }
 }
