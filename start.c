@@ -2,13 +2,12 @@
  * tiles.c
  * program which demonstraes tile mode 0
  */
-//#include "clouds.h"
-#include "hillsandclouds.h"
 /* include the image we are using */
+#include "background.h"
 #include "start.h"
 /* include the tile map we are using */
 #include "startfront.h"
-#include "clouds.h"
+#include "map.h"
 /* the width and height of the screen */
 #define WIDTH 240
 #define HEIGHT 160
@@ -112,13 +111,13 @@ void setup_background() {
 
     /* load the palette from the image into palette memory*/
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        bg_palette[i] = clouds_palette[i];
+        bg_palette[i] = background_palette[i];
     }
 
     /* load the image into char block 0 (16 bits at a time) */
     volatile unsigned short* dest = char_block(0);
-    unsigned short* image = (unsigned short*) clouds_data;
-    for (int i = 0; i < ((clouds_width * clouds_height) / 2); i++) {
+    unsigned short* image = (unsigned short*) background_data;
+    for (int i = 0; i < ((background_width * background_height) / 2); i++) {
         dest[i] = image[i];
     }
 
@@ -133,7 +132,7 @@ void setup_background() {
 
     /* load the tile data into screen block 16 */
     dest = screen_block(16);
-    for (int i = 0; i < (hillsandclouds_width * hillsandclouds_height); i++) {
+    for (int i = 0; i < (map_width * map_height); i++) {
         dest[i] = map[i];
     }
 }
@@ -167,7 +166,7 @@ void setup_title_screen() {
 
     /* load the tile data into screen block 16 */
     dest = screen_block(16);
-    for (int i = 0; i < (map_width * map_height); i++) {
+    for (int i = 0; i < (sf_width * sf_height); i++) {
         dest[i] = map[i];
     }
 }
