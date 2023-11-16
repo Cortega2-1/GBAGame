@@ -7,6 +7,7 @@
 #include "start.h"
 /* include the tile map we are using */
 #include "startfront.h"
+#include "map2.h"
 #include "map.h"
 /* the width and height of the screen */
 #define WIDTH 240
@@ -135,6 +136,20 @@ void setup_background() {
     for (int i = 0; i < (map_width * map_height); i++) {
         dest[i] = map[i];
     }
+
+         *bg1_control = 1 |
+          (0 << 2) |
+          (0 << 6)  |              
+          (1 << 7)  |       // color mode, 0 is 16 colors, 1 is 256 colors 
+          (24 << 8) |       // the screen block the tile data is stored in 
+          (1 << 13) |       // wrapping flag 
+         (0 << 14); 
+      
+      dest = screen_block(24);
+      for (int i = 0; i < (map_width * map_height); i++) {
+          dest[i] = map2[i];
+      }
+
 }
 
 
@@ -176,13 +191,13 @@ void setup_title_screen() {
 int main() {
     /* we set the mode to mode 0 with bg0 on */
     *display_control = MODE0 | BG0_ENABLE;
-    setup_title_screen();
+   // setup_title_screen();
 
     /* Wait for the 'A' button to be pressed to start the game */
-    while (!button_pressed(BUTTON_A)) {
+    //while (!button_pressed(BUTTON_A)) {
         /* Wait for vblank */
        // wait_vblank();
-    }
+   // }
 
     /* setup the background 0 */
     setup_background();
@@ -212,7 +227,8 @@ int main() {
         wait_vblank();
         *bg0_x_scroll = xscroll;
         *bg0_y_scroll = yscroll;
-
+        *bg1_x_scroll =
+        *bg1_y_scroll = 
         /* delay some */
         delay(50);
     }
