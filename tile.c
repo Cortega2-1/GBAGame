@@ -4,7 +4,7 @@
  */
 
 /* include the image we are using */
-#include "start.h"
+#include "start1.h"
 
 /* include the tile map we are using */
 #include "startfront.h"
@@ -112,13 +112,13 @@ void setup_background() {
 
     /* load the palette from the image into palette memory*/
     for (int i = 0; i < PALETTE_SIZE; i++) {
-        bg_palette[i] = start_palette[i];
+        bg_palette[i] = start1_palette[i];
     }
 
     /* load the image into char block 0 (16 bits at a time) */
     volatile unsigned short* dest = char_block(0);
-    unsigned short* image = (unsigned short*) start_data;
-    for (int i = 0; i < ((start_width * start_height) / 2); i++) {
+    unsigned short* image = (unsigned short*) start1_data;
+    for (int i = 0; i < ((start1_width * start1_height) / 2); i++) {
         dest[i] = image[i];
     }
 
