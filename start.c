@@ -123,7 +123,7 @@ void setup_background() {
     }
 
     /* set all control the bits in this register */
-    *bg0_control = 0 |    /* priority, 0 is highest, 3 is lowest */
+    *bg0_control = 1 |    /* priority, 0 is highest, 3 is lowest */
         (0 << 2)  |       /* the char block the image data is stored in */
         (0 << 6)  |       /* the mosaic flag */
         (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
@@ -137,7 +137,7 @@ void setup_background() {
         dest[i] = map[i];
     }
 
-         *bg1_control = 1 |
+         *bg1_control = 0 |
           (0 << 2) |
           (0 << 6)  |              
           (1 << 7)  |       // color mode, 0 is 16 colors, 1 is 256 colors 
@@ -146,7 +146,7 @@ void setup_background() {
          (0 << 14); 
       
       dest = screen_block(24);
-      for (int i = 0; i < (map_width * map_height); i++) {
+      for (int i = 0; i < (map2_width * map2_height); i++) {
           dest[i] = map2[i];
       }
 
@@ -171,7 +171,7 @@ void setup_title_screen() {
     }
 
     /* set all control the bits in this register */
-    *bg0_control = 0 |    /* priority, 0 is highest, 3 is lowest */
+   *bg0_control = 1 |    /* priority, 0 is highest, 3 is lowest */
         (0 << 2)  |       /* the char block the image data is stored in */
         (0 << 6)  |       /* the mosaic flag */
         (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
@@ -190,7 +190,7 @@ void setup_title_screen() {
 /* the main function */
 int main() {
     /* we set the mode to mode 0 with bg0 on */
-    *display_control = MODE0 | BG0_ENABLE;
+    *display_control = MODE0 | BG0_ENABLE | BG1_ENABLE;
    // setup_title_screen();
 
     /* Wait for the 'A' button to be pressed to start the game */
@@ -205,7 +205,8 @@ int main() {
     /* set initial scroll to 0 */
     int xscroll = 0;
     int yscroll = 0;
-
+    int x1scroll = xscroll * 2;
+    int y1scroll = yscroll *2;
     /* loop forever */
     while (1) {
         /* scroll with the arrow keys */
@@ -227,8 +228,8 @@ int main() {
         wait_vblank();
         *bg0_x_scroll = xscroll;
         *bg0_y_scroll = yscroll;
-        *bg1_x_scroll =
-        *bg1_y_scroll = 
+        *bg1_x_scroll = x1scroll;
+        *bg1_y_scroll = y1scroll;
         /* delay some */
         delay(50);
     }
