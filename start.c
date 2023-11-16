@@ -205,8 +205,7 @@ int main() {
     /* set initial scroll to 0 */
     int xscroll = 0;
     int yscroll = 0;
-    int x1scroll = xscroll * 2;
-    int y1scroll = yscroll *2;
+  
     /* loop forever */
     while (1) {
         /* scroll with the arrow keys */
@@ -228,8 +227,8 @@ int main() {
         wait_vblank();
         *bg0_x_scroll = xscroll;
         *bg0_y_scroll = yscroll;
-        *bg1_x_scroll = x1scroll;
-        *bg1_y_scroll = y1scroll;
+        *bg1_x_scroll = xscroll*2;
+        *bg1_y_scroll = yscroll*2;
         /* delay some */
         delay(50);
     }
