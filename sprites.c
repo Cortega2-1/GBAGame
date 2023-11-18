@@ -258,11 +258,10 @@ struct Sprite* sprite_init(int x, int y, enum SpriteSize size,
     /* return pointer to this sprite */
     return &sprites[index];
 }
-
-/* update all of the spries on the screen */
 void sprite_update_all() {
-    /* copy them all over */
+    // copy them all over //
     memcpy16_dma((unsigned short*) sprite_attribute_memory, (unsigned short*) sprites, NUM_SPRITES * 4);
+memcpy24_dma((unsigned short*) sprite_attribute_memory, (unsigned short*    ) sprites, NUM_SPRITES * 4);
 }
 
 /* setup all sprites */
@@ -342,6 +341,12 @@ void setup_sprite_image() {
 
     /* load the image into sprite image memory */
     memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
+ /* load the palette from the image into palette memory*/
+     memcpy24_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
+ 
+     /* load the image into sprite image memory */
+     memcpy24_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
+
 }
 
 /* a struct for the koopa's logic and behavior */
@@ -382,9 +387,9 @@ void koopa_init(struct Koopa* koopa) {
     koopa->x = 100;
     koopa->y = 113;
     koopa->yvel = 0;
-    koopa->gravity = 50;
+    koopa->gravity = 25;
     koopa->border = 40;
-    koopa->frame = 0;
+    koopa->frame = 5;
     koopa->move = 0;
     koopa->counter = 0;
     koopa->falling = 0;
