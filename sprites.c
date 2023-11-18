@@ -111,7 +111,7 @@ volatile unsigned short* screen_block(unsigned long block) {
 /* flags for the sizes to transfer, 16 or 32 bits */
 #define DMA_16 0x00000000
 #define DMA_32 0x04000000
-
+#define DMA_24 0x02000000
 /* pointer to the DMA source location */
 volatile unsigned int* dma_source = (volatile unsigned int*) 0x40000D4;
 
