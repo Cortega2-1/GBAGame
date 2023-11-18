@@ -8,10 +8,10 @@
 
 /* include the background image we are using */
 #include "background.h"
-
+#include "start.h"
 /* include the sprite image we are using */
 #include "koopa.h"
-
+#include "map2.h"
 /* include the tile map we are using */
 #include "map.h"
 
@@ -127,6 +127,12 @@ void memcpy16_dma(unsigned short* dest, unsigned short* source, int amount) {
     *dma_destination = (unsigned int) dest;
     *dma_count = amount | DMA_16 | DMA_ENABLE;
 }
+/* copy data using DMA */
+ void memcpy24_dma(unsigned short* dest, unsigned short* source, int amount) {
+     *dma_source = (unsigned int) source;
+     *dma_destination = (unsigned int) dest;
+     *dma_count = amount | DMA_24 | DMA_ENABLE;
+ }
 
 /* function to setup background 0 for this program */
 void setup_background() {
@@ -137,9 +143,15 @@ void setup_background() {
     /* load the image into char block 0 */
     memcpy16_dma((unsigned short*) char_block(0), (unsigned short*) background_data,
             (background_width * background_height) / 2);
+/* load the palette from the image into palette memory*/
+     memcpy24_dma((unsigned short*) bg_palette, (unsigned short*) background_palette, PALETTE_SIZE);
+ 
+     /* load the image into char block 0 */
+     memcpy24_dma((unsigned short*) char_block(0), (unsigned short*) background_data,
+             (background_width * background_height) / 2);
 
     /* set all control the bits in this register */
-    *bg0_control = 0 |    /* priority, 0 is highest, 3 is lowest */
+    *bg0_control = 1 |    /* priority, 0 is highest, 3 is lowest */
         (0 << 2)  |       /* the char block the image data is stored in */
         (0 << 6)  |       /* the mosaic flag */
         (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
@@ -148,7 +160,19 @@ void setup_background() {
         (0 << 14);        /* bg size, 0 is 256x256 */
 
     /* load the tile data into screen block 16 */
-    memcpy16_dma((unsigned short*) screen_block(16), (unsigned short*) map, map_width * map_height);
+    memcpy16_dma((unsigned short*) screen_block(16
+), (unsigned short*) map, map_width * map_height);
+  /* set all control the bits in this register */
+     *bg0_control = 1 |    /* priority, 0 is highest, 3 is lowest */
+         (0 << 2)  |       /* the char block the image data is stored in */
+         (0 << 6)  |       /* the mosaic flag */
+         (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
+         (24 << 8) |       /* the screen block the tile data is stored in */
+         (1 << 13) |       /* wrapping flag */
+         (0 << 14);        /* bg size, 0 is 256x256 */
+ 
+     /* load the tile data into screen block 16 */
+     memcpy24_dma((unsigned short*) screen_block(24), (unsigned short*) map2,     map2_width * map2_height);
 }
 
 /* just kill time */
@@ -566,6 +590,7 @@ int main() {
         /* wait for vblank before scrolling and moving sprites */
         wait_vblank();
         *bg0_x_scroll = xscroll;
+      
         sprite_update_all();
 
         /* delay some */
