@@ -160,8 +160,7 @@ void setup_background() {
         (0 << 14);        /* bg size, 0 is 256x256 */
 
     /* load the tile data into screen block 16 */
-    memcpy16_dma((unsigned short*) screen_block(16
-), (unsigned short*) map, map_width * map_height);
+    memcpy16_dma((unsigned short*) screen_block(16), (unsigned short*) map, map_width * map_height);
   /* set all control the bits in this register */
      *bg1_control = 0 |    /* priority, 0 is highest, 3 is lowest */
          (0 << 2)  |       /* the char block the image data is stored in */
@@ -172,7 +171,7 @@ void setup_background() {
          (0 << 14);        /* bg size, 0 is 256x256 */
  
      /* load the tile data into screen block 16 */
-     memcpy24_dma((unsigned short*) screen_block(24), (unsigned short*) map2,     map2_width * map2_height);
+     memcpy16_dma((unsigned short*) screen_block(24), (unsigned short*) map2, map2_width * map2_height);
 }
 
 /* just kill time */
@@ -590,7 +589,7 @@ int main() {
         /* wait for vblank before scrolling and moving sprites */
         wait_vblank();
         *bg0_x_scroll = xscroll;
-      *bg1_x_scroll = xscroll*2;
+      *bg1_x_scroll = xscroll;
         sprite_update_all();
 
         /* delay some */
