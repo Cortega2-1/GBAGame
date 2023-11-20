@@ -8,7 +8,7 @@
 
 /* include the background image we are using */
 #include "background.h"
-#include "start.h"
+//#include "start.h"
 /* include the sprite image we are using */
 #include "koopa.h"
 #include "map2.h"
@@ -342,11 +342,6 @@ void setup_sprite_image() {
     /* load the image into sprite image memory */
     memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
  /* load the palette from the image into palette memory*/
-     memcpy24_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
- 
-     /* load the image into sprite image memory */
-     memcpy24_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
-
 }
 
 /* a struct for the koopa's logic and behavior */
@@ -385,7 +380,7 @@ struct Koopa {
 /* initialize the koopa */
 void koopa_init(struct Koopa* koopa) {
     koopa->x = 100;
-    koopa->y = 110;
+    koopa->y = 100;
     koopa->yvel = 50;
     koopa->gravity = 50;
     koopa->border = 40;
@@ -508,8 +503,8 @@ void koopa_update(struct Koopa* koopa, int xscroll) {
     }
 
     /* check which tile the koopa's feet are over */
-    unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll, 0, map,
-            map_width, map_height);
+    unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll, 0, map2,
+            map2_width, map2_height);
 
     /* if it's block tile
      * these numbers refer to the tile indices of the blocks the koopa can walk on */
