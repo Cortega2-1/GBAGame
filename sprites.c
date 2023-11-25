@@ -2,19 +2,17 @@
  * collide.c
  * program which demonstrates sprites colliding with tiles
  */
-
+#include <stdio.h>
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 160
-
+#include "background1.h"
 /* include the background image we are using */
 #include "background.h"
-//#include "start.h"
 /* include the sprite image we are using */
 #include "koopa.h"
 #include "map2.h"
 /* include the tile map we are using */
 #include "map.h"
-
 /* the tile mode flags needed for display control register */
 #define MODE0 0x00
 #define BG0_ENABLE 0x100
@@ -23,7 +21,8 @@
 #define SPRITE_MAP_2D 0x0
 #define SPRITE_MAP_1D 0x40
 #define SPRITE_ENABLE 0x1000
-
+ int play_again = 0;
+        int start_over = 0;
 
 /* the control registers for the four tile layers */
 volatile unsigned short* bg0_control = (volatile unsigned short*) 0x4000008;
@@ -127,13 +126,6 @@ void memcpy16_dma(unsigned short* dest, unsigned short* source, int amount) {
     *dma_destination = (unsigned int) dest;
     *dma_count = amount | DMA_16 | DMA_ENABLE;
 }
-/* copy data using DMA */
- void memcpy24_dma(unsigned short* dest, unsigned short* source, int amount) {
-     *dma_source = (unsigned int) source;
-     *dma_destination = (unsigned int) dest;
-     *dma_count = amount | DMA_24 | DMA_ENABLE;
- }
-
 /* function to setup background 0 for this program */
 void setup_background() {
 
@@ -143,13 +135,7 @@ void setup_background() {
     /* load the image into char block 0 */
     memcpy16_dma((unsigned short*) char_block(0), (unsigned short*) background_data,
             (background_width * background_height) / 2);
-/* load the palette from the image into palette memory*/
-     memcpy24_dma((unsigned short*) bg_palette, (unsigned short*) background_palette, PALETTE_SIZE);
  
-     /* load the image into char block 0 */
-     memcpy24_dma((unsigned short*) char_block(0), (unsigned short*) background_data,
-             (background_width * background_height) / 2);
-
     /* set all control the bits in this register */
     *bg0_control = 1 |    /* priority, 0 is highest, 3 is lowest */
         (0 << 2)  |       /* the char block the image data is stored in */
@@ -169,11 +155,50 @@ void setup_background() {
          (24 << 8) |       /* the screen block the tile data is stored in */
          (1 << 13) |       /* wrapping flag */
          (0 << 14);        /* bg size, 0 is 256x256 */
- 
+  /* clear the tile map in screen block 16 to all black tile*/
+      
      /* load the tile data into screen block 16 */
      memcpy16_dma((unsigned short*) screen_block(24), (unsigned short*) map2, map2_width * map2_height);
 }
-
+void setup_background1() {
+      /* load the palette from the image into palette memory*/
+      memcpy16_dma((unsigned short*) bg_palette, (unsigned short*) background1_palette, PALETTE_SIZE);
+  
+      /* load the image into char block 0 */
+      memcpy16_dma((unsigned short*) char_block(0), (unsigned short*) background1_data,
+              (background1_width * background1_height) / 2);
+  
+      /* bg0 is just all black so the pink does not show through! */
+      *bg0_control = 3 |    /* priority, 0 is highest, 3 is lowest */
+          (0 << 2)  |       /* the char block the image data is stored in */
+          (0 << 6)  |       /* the mosaic flag */
+          (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
+          (16 << 8) |       /* the screen block the tile data is stored in */
+         (1 << 13) |       /* wrapping flag */
+          (0 << 14);        /* bg size, 0 is 256x256 */
+  
+  
+      /* bg1 is our actual text background */
+      *bg1_control = 0 |    /* priority, 0 is highest, 3 is lowest */
+          (0 << 2)  |       /* the char block the image data is stored in */
+         (0 << 6)  |       /* the mosaic flag */
+         (1 << 7)  |       /* color mode, 0 is 16 colors, 1 is 256 colors */
+        (24 << 8) |       /* the screen block the tile data is stored in */
+         (1 << 13) |       /* wrapping flag */
+         (0 << 14);        /* bg size, 0 is 256x256 */
+ 
+     /* clear the tile map in screen block 16 to all black tile*/
+     volatile unsigned short* ptr = screen_block(16);
+     for (int i = 0; i < 32 * 32; i++) {
+         ptr[i] = 95;
+     }
+ 
+     /* clear the text map to be all blanks */
+     ptr = screen_block(24);
+     for (int i = 0; i < 32 * 32; i++) {
+         ptr[i] = 0;
+     }
+ }
 /* just kill time */
 void delay(unsigned int amount) {
     for (int i = 0; i < amount * 10; i++);
@@ -260,7 +285,6 @@ struct Sprite* sprite_init(int x, int y, enum SpriteSize size,
 void sprite_update_all() {
     // copy them all over //
     memcpy16_dma((unsigned short*) sprite_attribute_memory, (unsigned short*) sprites, NUM_SPRITES * 4);
-memcpy24_dma((unsigned short*) sprite_attribute_memory, (unsigned short*    ) sprites, NUM_SPRITES * 4);
 }
 
 /* setup all sprites */
@@ -541,15 +565,88 @@ void koopa_update(struct Koopa* koopa, int xscroll) {
     /* set on screen position */
     sprite_position(koopa->sprite, koopa->x, koopa->y);
 }
+ /* function to set text on the screen at a given location */
+ void set_text(char* str, int row, int col) {
+     /* find the index in the texmap to draw to */
+     int index = row * 32 + col;
+ 
+     /* the first 32 characters are missing from the map (controls etc.) */
+     int missing = 32;
+ 
+     /* pointer to text map */
+     volatile unsigned short* ptr = screen_block(16);
+ 
+     /* for each character */
+     while (*str) {
+         /* place this character in the map */
+         ptr[index] = *str - missing;
+ 
+        /* move onto the next character */
+         index++;
+         str++;
+     }
+ }
+void update_coin_count(int coin_count) {
+    setup_background1();
+if(coin_count == 2){
+   setup_background1();
+     char coin_msg[32] = "Coins:", coin_count;
+     set_text(coin_msg, 0, 0);
+ }}
+#define EMPTY_TILE 0
+#define TOTAL_COINS 10
+void restart_game(struct Koopa* koopa, int xscroll, int* coin_count);
+//{
+/*     koopa->x = 100;
+     koopa->y = 100;
+*coin_count = 0;
+setup_background();*/
+//}
+/* function to handle collisions with coins */
+void count_coins(int* coin_count);
+void handle_coin_collision(struct Koopa* koopa, int xscroll, int* coin_count) {
+unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll,         0, map2, map2_width, map2_height);
+    /* If it's a coin tile, handle the collision */
+    if (tile == 40 || tile == 41 || tile == 50 || tile == 51) {
+        /* Increment the coin count */
+            count_coins(coin_count);
+        /* Check if all coins have been collected */
+        if (*coin_count == TOTAL_COINS) {
+            /* Switch to setup_background1 and show the total coin count message */
+            setup_background1();
+            char coin_msg[32];
+            sprintf(coin_msg, "Total Score: %d", *coin_count);
+            set_text(coin_msg, 0, 0);
 
-/* the main function */
+            /* Wait for a moment to display the message */
+            delay(1500); 
+/* Ask if the player wants to play again or start over */
+            char play_again_msg[100] = "Play again? Press 'B'";
+            set_text(play_again_msg, 8, 0);
+
+            while (!button_pressed(BUTTON_B)) {
+    }
+    restart_game(koopa, xscroll, coin_count);
+            /* Wait for a moment to display the message */
+    setup_background();
+    koopa->x = 50;
+    koopa->y = 0;            
+    delay(1500);
+        }
+    }
+}
+
+
 int main() {
     /* we set the mode to mode 0 with bg0 on */
     *display_control = MODE0 | BG0_ENABLE |BG1_ENABLE | SPRITE_ENABLE | SPRITE_MAP_1D;
-
-    /* setup the background 0 */
+setup_background1();
+while (!button_pressed(BUTTON_B)) {
+char msg [100] = "Welcome! Press 'B' to continue.   How to Play: Collect Coins";
+set_text(msg, 8, 0);
+}   
     setup_background();
-
+ 
     /* setup the sprite image data */
     setup_sprite_image();
 
@@ -559,15 +656,13 @@ int main() {
     /* create the koopa */
     struct Koopa koopa;
     koopa_init(&koopa);
-
+    int coin_count = 0;
     /* set initial scroll to 0 */
     int xscroll = 0;
-
     /* loop forever */
     while (1) {
         /* update the koopa */
         koopa_update(&koopa, xscroll);
-
         /* now the arrow keys move the koopa */
         if (button_pressed(BUTTON_RIGHT)) {
             if (koopa_right(&koopa)) {
@@ -585,15 +680,13 @@ int main() {
         if (button_pressed(BUTTON_A)) {
             koopa_jump(&koopa);
         }
-
         /* wait for vblank before scrolling and moving sprites */
         wait_vblank();
         *bg0_x_scroll = xscroll;
-      *bg1_x_scroll = xscroll;
+         *bg1_x_scroll = xscroll;
         sprite_update_all();
-
+        handle_coin_collision(&koopa, xscroll, &coin_count);
         /* delay some */
         delay(300);
-    }
 }
-
+}
