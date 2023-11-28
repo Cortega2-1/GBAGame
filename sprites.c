@@ -11,6 +11,8 @@
 /* include the sprite image we are using */
 #include "koopa.h"
 #include "map2.h"
+#include "soccer.h"
+//#include "soccer1.h"
 /* include the tile map we are using */
 #include "map.h"
 /* the tile mode flags needed for display control register */
@@ -21,8 +23,6 @@
 #define SPRITE_MAP_2D 0x0
 #define SPRITE_MAP_1D 0x40
 #define SPRITE_ENABLE 0x1000
- int play_again = 0;
-        int start_over = 0;
 
 /* the control registers for the four tile layers */
 volatile unsigned short* bg0_control = (volatile unsigned short*) 0x4000008;
@@ -45,7 +45,6 @@ volatile unsigned short* sprite_image_memory = (volatile unsigned short*) 0x6010
 /* the address of the color palettes used for backgrounds and sprites */
 volatile unsigned short* bg_palette = (volatile unsigned short*) 0x5000000;
 volatile unsigned short* sprite_palette = (volatile unsigned short*) 0x5000200;
-
 /* the button register holds the bits which indicate whether each button has
  * been pressed - this has got to be volatile as well
  */
@@ -356,17 +355,86 @@ void sprite_set_offset(struct Sprite* sprite, int offset) {
     /* apply the new one */
     sprite->attribute2 |= (offset & 0x03ff);
 }
-
-/* setup the sprite image and palette */
+/*
+// setup the sprite image and palette /
 void setup_sprite_image() {
-    /* load the palette from the image into palette memory*/
+    // load the palette from the image into palette memory/
+    memcpy16_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
+
+    // load the image into sprite image memory /
+    memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
+ // load the palette from the image into palette memory/
+memcpy16_dma((unsigned short*) sprite_palette + 256, (unsigned short*) soccer_palette, PALETTE_SIZE);
+ 
+     // load the image into sprite image memory /
+     memcpy16_dma((unsigned short*) sprite_image_memory + 256, (unsigned short*) soccer_data, (soccer_width * soccer_height) / 2);
+
+}
+*/
+void setup_koopa_sprite_image() {
+    /* load the palette from the image into palette memory */
     memcpy16_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
 
     /* load the image into sprite image memory */
     memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
- /* load the palette from the image into palette memory*/
 }
 
+/* setup the sprite image and palette for Square */
+/* setup the sprite image and palette for Square */
+void setup_square_sprite_image() {
+    /* load the palette from the image into palette memory */
+    memcpy16_dma((unsigned short*) sprite_palette, (unsigned short*) soccer_palette, PALETTE_SIZE);
+
+    /* load the image into sprite image memory */
+    memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) soccer_data, (soccer_width * soccer_height) / 2);
+// Example for koopa with an offset of 16
+
+}
+
+// Initialize the Square
+ struct Square {
+     /* the actual sprite attribute info */
+     struct Sprite* sprite;
+ 
+     /* the x and y postion in pixels */
+     int x, y;
+ 
+     /* the koopa's y velocity in 1/256 pixels/second */
+     int yvel;
+ 
+     /* the koopa's y acceleration in 1/256 pixels/second^2 */
+     int gravity;
+ 
+     /* which frame of the animation he is on */
+     int frame; 
+     /* the number of frames to wait before flipping */
+     int animation_delay;
+ 
+     /* the animation counter counts how many frames until we flip */
+     int counter;
+ 
+     /* whether the koopa is moving right now or not */
+     int move;
+ 
+     /* the number of pixels away from the edge of the screen the koopa stays */
+     int border;
+ 
+     /* if the koopa is currently falling */
+     int falling;
+ };
+void square_init(struct Square* square) {
+square->x = 0;
+    square->y = 100;
+    square->yvel = 1;
+    square->gravity = 50;
+     square->border = 50;
+     square->frame = 32;   
+     square->move = 0;
+     square->counter = 0;
+     square->falling = 0;
+     square->animation_delay = 8;
+     square->sprite = sprite_init(square->x, square->y, SIZE_16_32, 0, 0, square->frame, 0);
+ }
 /* a struct for the koopa's logic and behavior */
 struct Koopa {
     /* the actual sprite attribute info */
@@ -402,12 +470,12 @@ struct Koopa {
 
 /* initialize the koopa */
 void koopa_init(struct Koopa* koopa) {
-    koopa->x = 100;
+    koopa->x = 0;
     koopa->y = 100;
-    koopa->yvel = 50;
+    koopa->yvel = 1;
     koopa->gravity = 50;
     koopa->border = 40;
-    koopa->frame = 5;
+    koopa->frame = 0;
     koopa->move = 0;
     koopa->counter = 0;
     koopa->falling = 0;
@@ -565,6 +633,100 @@ void koopa_update(struct Koopa* koopa, int xscroll) {
     /* set on screen position */
     sprite_position(koopa->sprite, koopa->x, koopa->y);
 }
+/* move the square left or right, returns if it is at the edge of the screen */
+int square_left(struct Square* square) {
+    /* face left */
+    sprite_set_horizontal_flip(square->sprite, 1);
+    square->move = 1;
+
+    /* if we are at the left end, just scroll the screen */
+    if (square->x < square->border) {
+        return 1;
+    } else {
+        /* else move left */
+        square->x--;
+        return 0;
+    }
+}
+
+int square_right(struct Square* square) {
+    /* face right */
+    sprite_set_horizontal_flip(square->sprite, 0);
+    square->move = 10;
+
+    /* if we are at the right end, just scroll the screen */
+    if (square->x > (SCREEN_WIDTH - 16 - square->border)) {
+        return 1;
+    } else {
+        /* else move right */
+        square->x++;
+        return 0;
+    }
+}
+
+/* stop the square from walking left/right */
+void square_stop(struct Square* square) {
+    square->move = 0;
+    square->frame = 32;
+    square->counter = 7;
+    sprite_set_offset(square->sprite, square->frame);
+}
+
+/* start the square jumping, unless already falling */
+void square_jump(struct Square* square) {
+    if (!square->falling) {
+        square->yvel = -1350;
+        square->falling = 1;
+    }
+}
+
+/* update the square */
+void square_update(struct Square* square, int xscroll) {
+    /* update y position and speed if falling */
+    if (square->falling) {
+        square->y += (square->yvel >> 8);
+        square->yvel += square->gravity;
+    }
+
+    /* check which tile the square's feet are over */
+    unsigned short tile = tile_lookup(square->x + 8, square->y + 32, xscroll, 0, map2,
+            map2_width, map2_height);
+
+    /* if it's a block tile
+     * these numbers refer to the tile indices of the blocks the square can walk on */
+    if ((tile >= 1 && tile <= 6) || 
+            (tile >= 12 && tile <= 17)) {
+        /* stop the fall! */
+        square->falling = 0;
+        square->yvel = 0;
+
+        /* make him line up with the top of a block works by clearing out the lower bits to 0 */
+        square->y &= ~0x3;
+
+        /* move him down one because there is a one-pixel gap in the image */
+        square->y++;
+    } else {
+        /* he is falling now */
+        square->falling = 1;
+    }
+
+    /* update animation if moving */
+    if (square->move) {
+        square->counter++;
+        if (square->counter >= square->animation_delay) {
+            square->frame = square->frame + 16;
+            if (square->frame > 48) {
+                square->frame = 32;
+            }
+            sprite_set_offset(square->sprite, square->frame);
+            square->counter = 0;
+        }
+    }
+
+    /* set on-screen position */
+    sprite_position(square->sprite, square->x, square->y);
+}
+
  /* function to set text on the screen at a given location */
  void set_text(char* str, int row, int col) {
      /* find the index in the texmap to draw to */
@@ -586,34 +748,23 @@ void koopa_update(struct Koopa* koopa, int xscroll) {
          str++;
      }
  }
-void update_coin_count(int coin_count) {
-    setup_background1();
-if(coin_count == 2){
-   setup_background1();
-     char coin_msg[32] = "Coins:", coin_count;
-     set_text(coin_msg, 0, 0);
- }}
-#define EMPTY_TILE 0
 #define TOTAL_COINS 10
 void restart_game(struct Koopa* koopa, int xscroll, int* coin_count);
-//{
-/*     koopa->x = 100;
-     koopa->y = 100;
-*coin_count = 0;
-setup_background();*/
-//}
 /* function to handle collisions with coins */
 void count_coins(int* coin_count);
-void handle_coin_collision(struct Koopa* koopa, int xscroll, int* coin_count) {
-unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll,         0, map2, map2_width, map2_height);
+void handle_coin_collision(struct Square* square, struct Koopa* koopa, int xscroll, int* coin_count) {
+unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll, 0, map2, map2_width, map2_height);
     /* If it's a coin tile, handle the collision */
     if (tile == 40 || tile == 41 || tile == 50 || tile == 51) {
         /* Increment the coin count */
             count_coins(coin_count);
         /* Check if all coins have been collected */
-        if (*coin_count == TOTAL_COINS) {
+        if ((*coin_count == TOTAL_COINS) || (koopa->x == square->x || koopa->y == square->y)) {
             /* Switch to setup_background1 and show the total coin count message */
-            setup_background1();
+        koopa->x = 0;          
+        koopa->y = 0;
+delay(1500);
+  setup_background1();
             char coin_msg[32];
             sprintf(coin_msg, "Total Score: %d", *coin_count);
             set_text(coin_msg, 0, 0);
@@ -629,8 +780,10 @@ unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll,         
     restart_game(koopa, xscroll, coin_count);
             /* Wait for a moment to display the message */
     setup_background();
-    koopa->x = 50;
+    koopa->x = 150;
     koopa->y = 0;            
+    square->x = 50;
+    square->y = 0;
     delay(1500);
         }
     }
@@ -648,25 +801,32 @@ set_text(msg, 8, 0);
     setup_background();
  
     /* setup the sprite image data */
-    setup_sprite_image();
 
+    /* setup the sprite image data for Square */
+  //setup_koopa_sprite_image();
+  setup_square_sprite_image();
+    //setup_koopa_sprite_image();
     /* clear all the sprites on screen now */
     sprite_clear();
-
     /* create the koopa */
     struct Koopa koopa;
     koopa_init(&koopa);
-    int coin_count = 0;
+    struct Square square;
+    square_init(&square); 
+   int coin_count = 0;
     /* set initial scroll to 0 */
     int xscroll = 0;
+    //struct Ball ball;
     /* loop forever */
     while (1) {
         /* update the koopa */
+        square_update(&square, xscroll);
         koopa_update(&koopa, xscroll);
         /* now the arrow keys move the koopa */
         if (button_pressed(BUTTON_RIGHT)) {
             if (koopa_right(&koopa)) {
-                xscroll++;
+    square_right(&square);           
+     xscroll++;
             }
         } else if (button_pressed(BUTTON_LEFT)) {
             if (koopa_left(&koopa)) {
@@ -678,14 +838,15 @@ set_text(msg, 8, 0);
 
         /* check for jumping */
         if (button_pressed(BUTTON_A)) {
-            koopa_jump(&koopa);
+           koopa_jump(&koopa);
+            square_jump(&square);
         }
         /* wait for vblank before scrolling and moving sprites */
         wait_vblank();
         *bg0_x_scroll = xscroll;
          *bg1_x_scroll = xscroll;
         sprite_update_all();
-        handle_coin_collision(&koopa, xscroll, &coin_count);
+        handle_coin_collision(&square, &koopa, xscroll, &coin_count);
         /* delay some */
         delay(300);
 }
