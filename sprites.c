@@ -759,7 +759,7 @@ unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll, 0, map2,
         /* Increment the coin count */
             count_coins(coin_count);
         /* Check if all coins have been collected */
-        if ((*coin_count == TOTAL_COINS) || (koopa->x == square->x || koopa->y == square->y)) {
+        if (*coin_count == TOTAL_COINS) {
             /* Switch to setup_background1 and show the total coin count message */
         koopa->x = 0;          
         koopa->y = 0;
