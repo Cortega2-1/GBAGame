@@ -1,6 +1,8 @@
 # GBAGame
 Goal: Collect 10 points before the Purple Man makes a collision with you (the collision only takes into account when you jump at the same time as when you make a collision)
+
 Each coin is 4 points 
+
 Title Screen: 
 <img width="1440" alt="Screenshot 2023-11-29 at 10 21 45 AM" src="https://github.com/Cortega2-1/GBAGame/assets/102607256/5e389edf-03af-4480-a9ad-03925e324e94">
 
