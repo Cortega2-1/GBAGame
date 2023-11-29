@@ -355,31 +355,6 @@ void sprite_set_offset(struct Sprite* sprite, int offset) {
     /* apply the new one */
     sprite->attribute2 |= (offset & 0x03ff);
 }
-/*
-// setup the sprite image and palette /
-void setup_sprite_image() {
-    // load the palette from the image into palette memory/
-    memcpy16_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
-
-    // load the image into sprite image memory /
-    memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
- // load the palette from the image into palette memory/
-memcpy16_dma((unsigned short*) sprite_palette + 256, (unsigned short*) soccer_palette, PALETTE_SIZE);
- 
-     // load the image into sprite image memory /
-     memcpy16_dma((unsigned short*) sprite_image_memory + 256, (unsigned short*) soccer_data, (soccer_width * soccer_height) / 2);
-
-}
-*/
-void setup_koopa_sprite_image() {
-    /* load the palette from the image into palette memory */
-    memcpy16_dma((unsigned short*) sprite_palette, (unsigned short*) koopa_palette, PALETTE_SIZE);
-
-    /* load the image into sprite image memory */
-    memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) koopa_data, (koopa_width * koopa_height) / 2);
-}
-
-/* setup the sprite image and palette for Square */
 /* setup the sprite image and palette for Square */
 void setup_square_sprite_image() {
     /* load the palette from the image into palette memory */
@@ -387,7 +362,6 @@ void setup_square_sprite_image() {
 
     /* load the image into sprite image memory */
     memcpy16_dma((unsigned short*) sprite_image_memory, (unsigned short*) soccer_data, (soccer_width * soccer_height) / 2);
-// Example for koopa with an offset of 16
 
 }
 
@@ -470,7 +444,7 @@ struct Koopa {
 
 /* initialize the koopa */
 void koopa_init(struct Koopa* koopa) {
-    koopa->x = 0;
+    koopa->x = 210;
     koopa->y = 100;
     koopa->yvel = 1;
     koopa->gravity = 50;
@@ -759,12 +733,16 @@ unsigned short tile = tile_lookup(koopa->x + 8, koopa->y + 32, xscroll, 0, map2,
         /* Increment the coin count */
             count_coins(coin_count);
         /* Check if all coins have been collected */
-        if (*coin_count == TOTAL_COINS) {
-            /* Switch to setup_background1 and show the total coin count message */
+            if ((*coin_count == TOTAL_COINS) || 
+    (square->x == koopa->x) || 
+    (square->y == koopa->y)) {
+/* Switch to setup_background1 and show the total coin count message */
         koopa->x = 0;          
         koopa->y = 0;
-delay(1500);
-  setup_background1();
+        square->x = 0;
+        square->y = 0;
+        delay(3000);
+        setup_background1();
             char coin_msg[32];
             sprintf(coin_msg, "Total Score: %d", *coin_count);
             set_text(coin_msg, 0, 0);
@@ -780,9 +758,9 @@ delay(1500);
     restart_game(koopa, xscroll, coin_count);
             /* Wait for a moment to display the message */
     setup_background();
-    koopa->x = 150;
+    koopa->x = 40;
     koopa->y = 0;            
-    square->x = 50;
+    square->x = 0;
     square->y = 0;
     delay(1500);
         }
@@ -795,7 +773,7 @@ int main() {
     *display_control = MODE0 | BG0_ENABLE |BG1_ENABLE | SPRITE_ENABLE | SPRITE_MAP_1D;
 setup_background1();
 while (!button_pressed(BUTTON_B)) {
-char msg [100] = "Welcome! Press 'B' to continue.   How to Play: Collect Coins";
+char msg [150] = "Welcome! Press 'B' to continue. How to Play: Collect Coins to   get 10 points before the        Purple Man catches you!";
 set_text(msg, 8, 0);
 }   
     setup_background();
@@ -803,9 +781,7 @@ set_text(msg, 8, 0);
     /* setup the sprite image data */
 
     /* setup the sprite image data for Square */
-  //setup_koopa_sprite_image();
   setup_square_sprite_image();
-    //setup_koopa_sprite_image();
     /* clear all the sprites on screen now */
     sprite_clear();
     /* create the koopa */
@@ -816,7 +792,6 @@ set_text(msg, 8, 0);
    int coin_count = 0;
     /* set initial scroll to 0 */
     int xscroll = 0;
-    //struct Ball ball;
     /* loop forever */
     while (1) {
         /* update the koopa */
