@@ -2,7 +2,7 @@
 Goal: Collect 10 points before the Purple Man makes a collision with you (the collision only takes into account when you jump at the same time as when you make a collision)
 
 How to Play
-Navigate through the city by jumping between buildings.
+Navigate through the city by running and jumping onn blocks.
 Collect coins placed on top of buildings to earn points.
 Avoid colliding with the Purple Man while jumping to survive.
 Reach 10 points to achieve victory.
