@@ -8,7 +8,7 @@ Avoid colliding with the Purple Man while jumping to survive.
 Reach 10 points to achieve victory.
 
 Features
-Scrolling, Tiled Background: Experience a vibrant cityscape as you surf through the buildings.
+Scrolling, Tiled Background: Experience a vibrant valleyscape as you surf through the blocks.
 Two Different Sprites: Control your character and the Purple Man with distinct sprites.
 Two Assembly Functions: The game incorporates two essential functions written in assembly code, each comprising at least eight lines of code.
 Coin Collection: Each coin collected contributes 4 points to your score.
