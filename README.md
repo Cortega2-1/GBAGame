@@ -1,4 +1,20 @@
 # GBAGame
+
+Project Description
+Objective
+This project aims to provide hands-on experience in developing C programs for the Game Boy Advance (GBA) platform. Working in a team of two to four, our goal is to create a complex and engaging game that showcases our ability to implement advanced programming concepts in a real-world application.
+
+Game Overview
+Our game, chosen for its creativity and the challenge it presents, is designed to fully utilize the capabilities of the GBA. We aim to push the boundaries of what can be achieved on this platform, ensuring an immersive and enjoyable experience for players.
+
+Key Features
+Scrolling, Tiled Background: The game features a continuously scrolling background, creating a dynamic and engaging environment for players to navigate through.
+Multiple Sprites: At least two distinct sprites are utilized in the game, adding variety and depth to the gameplay through the introduction of various characters or objects.
+Assembly-Optimized Functions: To enhance the game's performance and demonstrate advanced programming skills, we have incorporated two functions written in assembly code. Each function comprises at least eight lines of code and plays a crucial role in the game's functionality.
+Game Style: The style and theme of the game were carefully selected to provide a unique experience. Whether it's a homage to classic games or an entirely original concept, our game is designed to be engaging and memorable.
+Development Teams
+This project is a collaborative effort, brought to life by the dedication and creativity of our team members. Each team member has contributed significantly, from initial concept development to the final implementation, ensuring that every aspect of the game is polished and optimized for the best possible player experience.
+
 Goal: Collect 10 points before the Purple Man makes a collision with you (the collision only takes into account when you jump at the same time as when you make a collision)
 
 How to Play
